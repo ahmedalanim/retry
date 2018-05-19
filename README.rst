@@ -38,7 +38,7 @@ retry decorator
 
 .. code:: python
 
-    def retry(exceptions=Exception, tries=-1, delay=0, max_delay=None, backoff=1, jitter=0, logger=logging_logger):
+    def retry(exceptions=Exception, tries=-1, delay=0, max_delay=None, backoff=1, jitter=0, logger=logging_logger, error_code=[]):
         """Return a retry decorator.
 
         :param exceptions: an exception or a tuple of exceptions to catch. default: Exception.
@@ -50,6 +50,9 @@ retry decorator
                        fixed if a number, random if a range tuple (min, max)
         :param logger: logger.warning(fmt, error, delay) will be called on failed attempts.
                        default: retry.logging_logger. if None, logging is disabled.
+        :param error_code: A list of Botocore Exception Error Code. For failed attempts, if a list of error code provided,
+                      exception will be raised immediately if the error does not match
+
         """
 
 Various retrying logic can be achieved by combination of arguments.
@@ -94,6 +97,16 @@ Examples
 
 .. code:: python
 
+    @retry(botocore.exceptions.ClientError, delay=1, jitter=1, error_code=["InternalFailure"])
+    def make_trouble():
+        '''Retry on ClientError as long as Error Code InternalFailure, sleep 1, 2, 3, 4, ... seconds between attempts.
+
+           Raises exception immediately if error code is anything but InternalFailure.
+        '''
+
+
+.. code:: python
+
     # If you enable logging, you can get warnings like 'ValueError, retrying in
     # 1 seconds'
     if __name__ == '__main__':
@@ -124,6 +137,8 @@ retry_call
                        fixed if a number, random if a range tuple (min, max)
         :param logger: logger.warning(fmt, error, delay) will be called on failed attempts.
                        default: retry.logging_logger. if None, logging is disabled.
+        :param error_code: A list of Botocore Exception Error Code. For failed attempts, if a list of error code provided,
+                      exception will be raised immediately if the error does not matc
         :returns: the result of the f function.
         """
 

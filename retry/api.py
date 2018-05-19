@@ -25,6 +25,9 @@ def __retry_internal(f, exceptions=Exception, tries=-1, delay=0, max_delay=None,
                    fixed if a number, random if a range tuple (min, max)
     :param logger: logger.warning(fmt, error, delay) will be called on failed attempts.
                    default: retry.logging_logger. if None, logging is disabled.
+    :param error_code: A list of Botocore Exception Error Code. For failed attempts, if a list of error code provided,
+                      exception will be raised immediately if the error does not match
+
     :returns: the result of the f function.
     """
     _tries, _delay = tries, delay
@@ -36,7 +39,8 @@ def __retry_internal(f, exceptions=Exception, tries=-1, delay=0, max_delay=None,
             if not _tries:
                 raise
 
-            if error_code and e.response["Error"]["Code"] in error_code:
+            if error_code and e.response["Error"]["Code"] not in error_code:
+
                 raise
 
             if logger is not None:
@@ -67,6 +71,8 @@ def retry(exceptions=Exception, tries=-1, delay=0, max_delay=None, backoff=1, ji
                    fixed if a number, random if a range tuple (min, max)
     :param logger: logger.warning(fmt, error, delay) will be called on failed attempts.
                    default: retry.logging_logger. if None, logging is disabled.
+    :param error_code: A list of Botocore Exception Error Code. For failed attempts, if a list of error code provided,
+                      exception will be raised immediately if the error does not match
     :returns: a retry decorator.
     """
 
@@ -98,6 +104,8 @@ def retry_call(f, fargs=None, fkwargs=None, exceptions=Exception, tries=-1, dela
                    fixed if a number, random if a range tuple (min, max)
     :param logger: logger.warning(fmt, error, delay) will be called on failed attempts.
                    default: retry.logging_logger. if None, logging is disabled.
+    :param error_code: A list of Botocore Exception Error Code. For failed attempts, if a list of error code provided,
+                      exception will be raised immediately if the error does not match
     :returns: the result of the f function.
     """
     args = fargs if fargs else list()
